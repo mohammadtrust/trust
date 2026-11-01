@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>اپلیکیشن آزمایشگاه مجازی کشاورزی</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vazirmatn Persian Font -->
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        agri: {
+                            50: '#f2f9f1',
+                            100: '#e1f2df',
+                            500: '#2e7d32', // Primary Leaf Green
+                            600: '#1b5e20',
+                            700: '#144718',
+                        },
+                        soil: {
+                            100: '#f5efe6',
+                            500: '#8d6e63', // Warm Soil Brown
+                            700: '#5d4037',
+                        },
+                        accent: '#f9a825' // Harvest Yellow
+                    },
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'Tahoma', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #0f172a;
+        }
+        
+        /* Custom scrollbar for mobile viewport */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Pulse subtle animation for status badge */
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-0 sm:p-4">
+
+    <!-- Device Wrapper / Frame simulator -->
+    <div class="relative w-full max-w-[430px] h-[100vh] sm:h-[860px] bg-gray-900 sm:rounded-[48px] shadow-2xl overflow-hidden border-0 sm:border-[10px] border-gray-800 flex flex-col">
+        
+        <!-- Mobile Status Bar (Android Top Bar) -->
+        <div class="bg-agri-700 text-white text-xs px-6 pt-3 pb-2 flex justify-between items-center z-50">
+            <span id="current-time">12:45</span>
+            <div class="flex items-center space-x-2 space-x-reverse text-xs">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-three-quarters"></i>
+            </div>
+        </div>
+
+        <!-- App Header -->
+        <header class="bg-agri-600 text-white px-5 py-4 shadow-md flex justify-between items-center z-40">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-xl border border-white/30">
+                    🌱
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">سبز آزمون رزمندگان</h1>
+                    <p class="text-xs text-agri-100">سامانه خدمات آنلاین آزمایشگاه کشاورزی</p>
+                </div>
+            </div>
+            <button onclick="openNotificationModal()" class="relative p-2 text-white/90 hover:text-white rounded-full bg-white/10 w-9 h-9 flex items-center justify-center">
+                <i class="fas fa-bell"></i>
+                <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-accent rounded-full border-2 border-agri-600"></span>
+            </button>
+        </header>
+
+        <!-- MAIN SCROLLABLE CONTENT AREA -->
+        <main id="main-container" class="flex-1 overflow-y-auto bg-slate-50 no-scrollbar pb-24 relative">
+            
+            <!-- TAB 1: HOME (صفحه اصلی) -->
+            <section id="tab-home" class="space-y-4 p-4">
+                
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-l from-agri-700 via-agri-600 to-agri-500 rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute -left-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <span class="bg-accent/20 text-accent font-medium text-xs px-3 py-1 rounded-full border border-accent/30 inline-block mb-2">
+                            👋 سلام کشاورز گرامی
+                        </span>
+                        <h2 class="text-xl font-bold mb-1">کشت هوشمند با آزمایش خاک و آب</h2>
+                        <p class="text-xs text-agri-100 leading-relaxed mb-4">با آنالیز دقیق زمین در دزفول و شمال خوزستان، مصرف کود را کم و برداشت محصول را ۲ برابر کنید.</p>
+                        
+                        <!-- Prominent CTA Button -->
+                        <button onclick="openWizard()" class="w-full bg-accent hover:bg-yellow-500 text-gray-900 font-bold py-3.5 px-4 rounded-2xl shadow-md flex items-center justify-center space-x-2 space-x-reverse transition active:scale-95 text-base">
+                            <i class="fas fa-plus-circle text-lg"></i>
+                            <span>ثبت درخواست جدید آزمایش</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Order Tracking Widget -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-3">
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <span class="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse-soft"></span>
+                            <span class="font-bold text-sm text-gray-800">سفارش فعال شما</span>
+                        </div>
+                        <span class="text-xs font-semibold text-agri-600 bg-agri-50 px-2.5 py-1 rounded-lg">کد: #۴۰۸۲</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800 mb-1">آزمایش جامع خاک - باغ مرکبات</p>
+                            <p class="text-xs text-gray-500"><i class="fas fa-microscope text-agri-500 ml-1"></i> وضعیت: <span class="text-amber-600 font-medium">در حال آنالیز در آزمایشگاه</span></p>
+                        </div>
+                        <button onclick="switchTab('orders')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded-xl font-medium transition">
+                            پیگیری
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Services Grid -->
+                <div>
+                    <h3 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
+                        <span>انواع خدمات آزمایشگاهی</span>
+                        <span class="text-xs text-gray-400 font-normal">انتخاب کنید</span>
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Soil Test -->
+                        <div onclick="openWizardWithService('soil')" class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col items-center text-center group active:bg-emerald-50">
+                            <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                                🪴
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm mb-1">آزمایش جامع خاک</h4>
+                            <p class="text-[11px] text-gray-500">سنجش شوری، pH، عناصر و توصیه کودی</p>
+                        </div>
+
+                        <!-- Water Test -->
+                        <div onclick="openWizardWithService('water')" class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col items-center text-center group active:bg-blue-50">
+                            <div class="w-14 h-14 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                                💧
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm mb-1">آزمایش آب آبیاری</h4>
+                            <p class="text-[11px] text-gray-500">کیفیت آب چاه، EC و قابلیت آبیاری قطره‌ای</p>
+                        </div>
+
+                        <!-- Leaf/Plant Test -->
+                        <div onclick="openWizardWithService('leaf')" class="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col items-center text-center group active:bg-amber-50">
+                            <div class="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                                🍃
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm mb-1">آنالیز برگ و گیاه</h4>
+                            <p class="text-[11px] text-gray-500">تشخیص دقیق کمبود تغذیه‌ای در طول فصل</p>
+                        </div>
+
+                        <!-- Pest & Disease -->
+                        <div onclick="openWizardWithService('pest')" class="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col items-center text-center group active:bg-rose-50">
+                            <div class="w-14 h-14 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                                🔬
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm mb-1">تشخیص آفت و بیماری</h4>
+                            <p class="text-[11px] text-gray-500">شناسایی قارچ، نماتد و راهکار درمان</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Expert Banner -->
+                <div class="bg-soil-100 rounded-2xl p-4 border border-soil-500/20 flex items-center justify-between">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <div class="w-10 h-10 bg-soil-500 text-white rounded-xl flex items-center justify-center text-lg">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm">نیاز به مشاوره دارید؟</h4>
+                            <p class="text-xs text-gray-600">ارتباط مستقیم با کارشناسان آزمایشگاه</p>
+                        </div>
+                    </div>
+                    <a href="tel:06142000000" onclick="event.preventDefault(); alert('تماس مستقیم با کارشناس آزمایشگاه سبز آزمون رزمندگان دزفول');" class="bg-soil-700 text-white text-xs px-3.5 py-2 rounded-xl font-medium shadow-sm">
+                        تماس
+                    </a>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: ORDERS & REPORTS (سفارش‌ها و نتایج) -->
+            <section id="tab-orders" class="space-y-4 p-4 hidden">
+                <h2 class="font-bold text-lg text-gray-800 mb-2">سوابق آزمایش‌ها و نتایج</h2>
+
+                <!-- Tabs inside orders -->
+                <div class="flex bg-gray-200 p-1 rounded-xl text-xs font-semibold">
+                    <button id="btn-subtab-active" onclick="toggleSubTab('active')" class="flex-1 py-2 rounded-lg bg-white shadow-sm text-agri-700">سفارش‌های فعال (۱)</button>
+                    <button id="btn-subtab-history" onclick="toggleSubTab('history')" class="flex-1 py-2 rounded-lg text-gray-600">گزارش‌های آماده (۲)</button>
+                </div>
+
+                <!-- Active Orders Subtab -->
+                <div id="subtab-active-content" class="space-y-3">
+                    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span class="bg-amber-100 text-amber-800 text-[11px] px-2.5 py-1 rounded-md font-bold inline-block mb-1">در حال آنالیز</span>
+                                <h3 class="font-bold text-gray-800 text-sm">آزمایش جامع خاک</h3>
+                                <p class="text-xs text-gray-500">زمین ۱۰ هکتاری - محصول: مرکبات (دزفول)</p>
+                            </div>
+                            <span class="text-xs text-gray-400">۱۴۰۳/۰۲/۱۵</span>
+                        </div>
+                        <!-- Progress bar -->
+                        <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden mb-3">
+                            <div class="bg-amber-500 h-full w-2/3 rounded-full"></div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-gray-500">
+                            <span>ثبت اولیه</span>
+                            <span>نمونه‌برداری</span>
+                            <span class="font-bold text-amber-600">آنالیز دستگاهی</span>
+                            <span>گزارش نهایی</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History / Completed Reports Subtab -->
+                <div id="subtab-history-content" class="space-y-3 hidden">
+                    
+                    <!-- Report Item 1 -->
+                    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:border-agri-500 transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="bg-emerald-100 text-emerald-800 text-[11px] px-2.5 py-1 rounded-md font-bold inline-block mb-1">آماده دانلود و مشاهده</span>
+                                <h3 class="font-bold text-gray-800 text-sm">آزمایش آب چاه شماره ۲</h3>
+                                <p class="text-xs text-gray-500">تاریخ نمونه‌برداری: ۱۴۰۲/۱۱/۲۰</p>
+                            </div>
+                            <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 bg-slate-50 p-2.5 rounded-xl mb-3">
+                            نتیجه کلی: <strong class="text-emerald-700">کیفیت آب مناسب برای مرکبات</strong> - EC = 1.2 dS/m
+                        </p>
+                        <button onclick="openReportModal()" class="w-full bg-agri-50 hover:bg-agri-100 text-agri-700 text-xs py-2.5 rounded-xl font-bold transition flex items-center justify-center space-x-1 space-x-reverse">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>مشاهده تحلیل کامل و توصیه کودی</span>
+                        </button>
+                    </div>
+
+                    <!-- Report Item 2 -->
+                    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="bg-emerald-100 text-emerald-800 text-[11px] px-2.5 py-1 rounded-md font-bold inline-block mb-1">تکمیل شده</span>
+                                <h3 class="font-bold text-gray-800 text-sm">آزمایش خاک مزرعه گندم</h3>
+                                <p class="text-xs text-gray-500">تاریخ نمونه‌برداری: ۱۴۰۲/۰۷/۱۰</p>
+                            </div>
+                        </div>
+                        <button onclick="alert('فایل PDF گزارش شش ماه پیش بارگذاری شد.');" class="w-full bg-gray-100 text-gray-700 text-xs py-2.5 rounded-xl font-bold transition flex items-center justify-center space-x-1 space-x-reverse">
+                            <i class="fas fa-download"></i>
+                            <span>دانلود کارنامه آزمایش (PDF)</span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- TAB 3: GUIDE (راهنمای نمونه‌برداری) -->
+            <section id="tab-guide" class="space-y-4 p-4 hidden">
+                <h2 class="font-bold text-lg text-gray-800 mb-1">آموزش گام‌به‌گام نمونه‌برداری</h2>
+                <p class="text-xs text-gray-500 mb-3">اگر خودتان نمونه را ارسال می‌کنید، این ویدیوها و نکات را حتماً ببینید:</p>
+
+                <!-- Guide 1 -->
+                <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                    <div class="h-36 bg-slate-800 relative flex items-center justify-center">
+                        <img src="https://images.unsplash.com/photo-1592417817098-8f3d6eb231fc?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover opacity-60" alt="نمونه برداری خاک">
+                        <button onclick="alert('پخش ویدیو آموزشی نمونه‌برداری درست خاک از عمق ۰-۳۰ و ۳۰-۶۰ سانتی‌متری');" class="absolute w-12 h-12 bg-white/90 text-agri-600 rounded-full flex items-center justify-center text-xl shadow-lg hover:scale-110 transition">
+                            <i class="fas fa-play mr-1"></i>
+                        </button>
+                    </div>
+                    <div class="p-3.5">
+                        <h3 class="font-bold text-sm text-gray-800">چگونه از خاک مزرعه نمونه بگیریم؟</h3>
+                        <p class="text-xs text-gray-500 mt-1">طریقه برداشت نمونه زیگزاگی از عمق‌های مختلف برای درختان و زراعت.</p>
+                    </div>
+                </div>
+
+                <!-- Guide 2 -->
+                <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center space-x-3 space-x-reverse">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl shrink-0">
+                        🧪
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-gray-800">نکات نمونه‌برداری آب چاه</h3>
+                        <p class="text-xs text-gray-500">اجازه دهید چاه حداقل نیم ساعت کار کند، سپس بطری را از آب پر کنید.</p>
+                    </div>
+                </div>
+
+                <!-- Guide 3 -->
+                <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center space-x-3 space-x-reverse">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl shrink-0">
+                        🍃
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-gray-800">زمان دقیق نمونه‌برداری برگ</h3>
+                        <p class="text-xs text-gray-500">بهترین زمان برای مرکبات شمال خوزستان در اواخر تابستان است.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: SUPPORT & CHAT (پشتیبانی و مشاوره) -->
+            <section id="tab-support" class="space-y-4 p-4 hidden">
+                <h2 class="font-bold text-lg text-gray-800 mb-1">ارتباط با آزمایشگاه دزفول</h2>
+                <p class="text-xs text-gray-500">سوالات، عکس آفت یا صدای خود را برای کارشناسان ارسال کنید.</p>
+
+                <!-- Chat Box Prototype -->
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 h-[380px] flex flex-col justify-between">
+                    <!-- Chat Messages -->
+                    <div class="space-y-3 overflow-y-auto no-scrollbar pr-1">
+                        <!-- Received Message -->
+                        <div class="flex items-start space-x-2 space-x-reverse">
+                            <div class="w-8 h-8 bg-agri-600 text-white rounded-full flex items-center justify-center text-xs shrink-0 font-bold">
+                                سبز
+                            </div>
+                            <div class="bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tr-none text-xs max-w-[80%] leading-relaxed">
+                                سلام کشاورز گرامی! آزمایشگاه سبز آزمون رزمندگان در خدمت شماست. چطور می‌توانیم کمکتان کنیم؟
+                            </div>
+                        </div>
+
+                        <!-- Sent Message -->
+                        <div class="flex items-start space-x-2 space-x-reverse justify-end">
+                            <div class="bg-agri-600 text-white p-3 rounded-2xl rounded-tl-none text-xs max-w-[80%] leading-relaxed">
+                                سلام، برگ‌های پرتقال مذرعه من زرد شده. آیا باید آزمایش برگ بدم یا خاک؟
+                            </div>
+                        </div>
+
+                        <!-- Voice Message Demo -->
+                        <div class="flex items-start space-x-2 space-x-reverse">
+                            <div class="w-8 h-8 bg-agri-600 text-white rounded-full flex items-center justify-center text-xs shrink-0 font-bold">
+                                سبز
+                            </div>
+                            <div class="bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tr-none text-xs max-w-[80%] flex items-center space-x-2 space-x-reverse">
+                                <button onclick="alert('پخش صدای راهنمایی کارشناس آزمایشگاه');" class="w-7 h-7 bg-agri-600 text-white rounded-full flex items-center justify-center text-xs">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <span class="text-gray-500 text-[11px]">پیام صوتی کارشناس (0:45)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="flex items-center space-x-2 space-x-reverse pt-2 border-t border-gray-100">
+                        <button onclick="alert('قابلیت ضبط صدای کشاورز');" class="w-10 h-10 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center text-base hover:bg-amber-200">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button onclick="alert('قابلیت ارسال عکس از برگ یا زمین');" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-xl flex items-center justify-center text-base hover:bg-gray-200">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <input type="text" placeholder="پیام خود را بنویسید..." class="flex-1 bg-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-agri-500">
+                        <button onclick="alert('پیام ارسال شد.');" class="w-10 h-10 bg-agri-600 text-white rounded-xl flex items-center justify-center text-sm shadow-md">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contact Details Card -->
+                <div class="bg-slate-100 p-4 rounded-2xl border border-slate-200 text-xs text-gray-600 space-y-2">
+                    <p class="flex items-center"><i class="fas fa-map-marker-alt text-agri-600 ml-2"></i> آدرس: خوزستان، دزفول، خیابان انقلاب</p>
+                    <p class="flex items-center"><i class="fas fa-clock text-agri-600 ml-2"></i> ساعت کاری: شنبه تا چهارشنبه ۸:۰۰ تا ۱۷:۰۰</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-3 py-2 flex justify-around items-center z-40 shadow-lg">
+            <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center text-agri-600 transition">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-[11px] font-bold mt-1">خانه</span>
+            </button>
+            <button onclick="switchTab('orders')" id="nav-orders" class="flex flex-col items-center text-gray-400 hover:text-agri-600 transition">
+                <i class="fas fa-clipboard-list text-lg"></i>
+                <span class="text-[11px] font-bold mt-1">سفارش‌ها</span>
+            </button>
+            
+            <!-- Quick Floating Add Button in Nav -->
+            <button onclick="openWizard()" class="w-12 h-12 bg-agri-600 hover:bg-agri-700 text-white rounded-full flex items-center justify-center text-xl shadow-lg -mt-5 border-4 border-slate-50 active:scale-95 transition">
+                <i class="fas fa-plus"></i>
+            </button>
+
+            <button onclick="switchTab('guide')" id="nav-guide" class="flex flex-col items-center text-gray-400 hover:text-agri-600 transition">
+                <i class="fas fa-book-open text-lg"></i>
+                <span class="text-[11px] font-bold mt-1">راهنما</span>
+            </button>
+            <button onclick="switchTab('support')" id="nav-support" class="flex flex-col items-center text-gray-400 hover:text-agri-600 transition">
+                <i class="fas fa-headset text-lg"></i>
+                <span class="text-[11px] font-bold mt-1">پشتیبانی</span>
+            </button>
+        </nav>
+
+        <!-- ======================================================== -->
+        <!-- MODAL: ORDER WIZARD (فرم ثبت سفارش گام به گام) -->
+        <!-- ======================================================== -->
+        <div id="modal-wizard" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white w-full max-w-[430px] rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+                
+                <!-- Wizard Header -->
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+                    <div>
+                        <h3 class="font-bold text-gray-800 text-base">ثبت سفارش آزمایش جدید</h3>
+                        <p class="text-xs text-gray-500" id="wizard-step-title">مرحله ۱ از ۴: انتخاب نوع آزمایش</p>
+                    </div>
+                    <button onclick="closeWizard()" class="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center text-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Wizard Steps Progress Bar -->
+                <div class="w-full bg-gray-100 h-1.5 flex">
+                    <div id="progress-bar" class="bg-agri-500 h-full w-1/4 transition-all duration-300"></div>
+                </div>
+
+                <!-- Wizard Content Area -->
+                <div class="p-5 flex-1 space-y-4">
+
+                    <!-- STEP 1: Select Service -->
+                    <div id="step-1" class="space-y-3">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">نوع آزمایش مورد نیاز خود را مشخص کنید:</label>
+                        
+                        <div onclick="selectServiceOption('soil', this)" class="service-opt border-2 border-agri-500 bg-agri-50 p-3.5 rounded-2xl flex items-center space-x-3 space-x-reverse cursor-pointer">
+                            <div class="text-2xl">🪴</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm text-gray-800">آزمایش کامل خاک</h4>
+                                <p class="text-xs text-gray-500">تعیین عناصر NPK، شوری EC، pH و توصیه کودی</p>
+                            </div>
+                            <i class="fas fa-check-circle text-agri-600 text-lg check-icon"></i>
+                        </div>
+
+                        <div onclick="selectServiceOption('water', this)" class="service-opt border border-gray-200 p-3.5 rounded-2xl flex items-center space-x-3 space-x-reverse cursor-pointer hover:border-agri-300">
+                            <div class="text-2xl">💧</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm text-gray-800">آزمایش آب آبیاری</h4>
+                                <p class="text-xs text-gray-500">کیفیت آب چاه و خطرات گرفتگی قطره‌چکان‌ها</p>
+                            </div>
+                            <i class="fas fa-check-circle text-gray-300 text-lg check-icon"></i>
+                        </div>
+
+                        <div onclick="selectServiceOption('leaf', this)" class="service-opt border border-gray-200 p-3.5 rounded-2xl flex items-center space-x-3 space-x-reverse cursor-pointer hover:border-agri-300">
+                            <div class="text-2xl">🍃</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm text-gray-800">آنالیز بافت برگ</h4>
+                                <p class="text-xs text-gray-500">پایش تغذیه‌ای و کمبود عناصر در فصل رشد</p>
+                            </div>
+                            <i class="fas fa-check-circle text-gray-300 text-lg check-icon"></i>
+                        </div>
+
+                        <div onclick="selectServiceOption('pest', this)" class="service-opt border border-gray-200 p-3.5 rounded-2xl flex items-center space-x-3 space-x-reverse cursor-pointer hover:border-agri-300">
+                            <div class="text-2xl">🔬</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm text-gray-800">آفت‌شناسی و گیاه‌پزشکی</h4>
+                                <p class="text-xs text-gray-500">شناسایی عوامل بیماری‌زا و نماتد خاک</p>
+                            </div>
+                            <i class="fas fa-check-circle text-gray-300 text-lg check-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Crop & Land Details -->
+                    <div id="step-2" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">نوع محصول یا کشت شما چیست؟</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="selectCrop('مرکبات (پرتقال/دزفول)')" class="crop-btn p-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:border-agri-500 text-right flex items-center justify-between">
+                                    <span>🍊 مرکبات</span>
+                                    <i class="fas fa-check text-agri-600 hidden"></i>
+                                </button>
+                                <button type="button" onclick="selectCrop('صیفی‌جات / گوجه و خیار')" class="crop-btn p-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:border-agri-500 text-right flex items-center justify-between">
+                                    <span>🍅 صیفی‌جات</span>
+                                    <i class="fas fa-check text-agri-600 hidden"></i>
+                                </button>
+                                <button type="button" onclick="selectCrop('گندم و ذرت')" class="crop-btn p-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:border-agri-500 text-right flex items-center justify-between">
+                                    <span>🌾 گندم / ذرت</span>
+                                    <i class="fas fa-check text-agri-600 hidden"></i>
+                                </button>
+                                <button type="button" onclick="selectCrop('نخیلات (خرما)')" class="crop-btn p-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:border-agri-500 text-right flex items-center justify-between">
+                                    <span>🌴 نخیلات</span>
+                                    <i class="fas fa-check text-agri-600 hidden"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">مساحت تقریبی زمین (هکتار یا هکتار/جریب):</label>
+                            <input type="number" id="input-area" placeholder="مثلاً: ۵" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-agri-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">موقعیت مکانی زمین (شهر / روستا):</label>
+                            <input type="text" id="input-location" placeholder="مثلاً: دزفول، شمس‌آباد" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-agri-500 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Sampling Method -->
+                    <div id="step-3" class="space-y-3 hidden">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">روش نمونه‌برداری را انتخاب کنید:</label>
+
+                        <div onclick="selectSamplingMethod('expert', this)" class="sample-opt border-2 border-agri-500 bg-agri-50 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse cursor-pointer">
+                            <div class="w-10 h-10 bg-agri-600 text-white rounded-xl flex items-center justify-center text-lg">
+                                🚜
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm text-gray-800">اعزام کارشناس به مزرعه شما</h4>
+                                <p class="text-xs text-gray-500">کارشناس آزمایشگاه می‌آید و نمونه‌برداری استاندارد انجام می‌دهد.</p>
+                            </div>
+                        </div>
+
+                        <div onclick="selectSamplingMethod('self', this)" class="sample-opt border border-gray-200 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse cursor-pointer hover:border-agri-300">
+                            <div class="w-10 h-10 bg-soil-500 text-white rounded-xl flex items-center justify-center text-lg">
+                                📦
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm text-gray-800">نمونه را خودم به آزمایشگاه تحویل می‌دهم</h4>
+                                <p class="text-xs text-gray-500">طبق ویدیو راهنما نمونه گرفته و ارسال کنید.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-amber-800 text-xs leading-relaxed">
+                            <i class="fas fa-info-circle ml-1"></i> <strong>توصیه:</strong> برای نتیجه دقیق‌تر، پیشنهاد می‌کنیم از گزینه اعزام کارشناس استفاده نمایید.
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: Review & Finalize -->
+                    <div id="step-4" class="space-y-4 hidden">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-gray-200 space-y-2 text-xs">
+                            <h4 class="font-bold text-gray-800 text-sm border-b border-gray-200 pb-2">خلاصه سفارش شما</h4>
+                            <div class="flex justify-between text-gray-600">
+                                <span>نوع آزمایش:</span>
+                                <strong id="summary-service" class="text-gray-800">آزمایش جامع خاک</strong>
+                            </div>
+                            <div class="flex justify-between text-gray-600">
+                                <span>محصول:</span>
+                                <strong id="summary-crop" class="text-gray-800">مرکبات</strong>
+                            </div>
+                            <div class="flex justify-between text-gray-600">
+                                <span>روش نمونه‌برداری:</span>
+                                <strong id="summary-method" class="text-gray-800">اعزام کارشناس</strong>
+                            </div>
+                            <div class="border-t border-gray-200 pt-2 flex justify-between font-bold text-sm text-agri-700">
+                                <span>هزینه برآوردی خدمات:</span>
+                                <span id="summary-price">۸۵۰,۰۰۰ تومان</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">شماره تماس جهت هماهنگی:</label>
+                            <input type="tel" value="09161234567" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-xs text-left font-mono focus:ring-2 focus:ring-agri-500 outline-none">
+                        </div>
+
+                        <p class="text-[11px] text-gray-400">پس از ثبت، کارشناسان آزمایشگاه سبز آزمون جهت هماهنگی با شما تماس خواهند گرفت.</p>
+                    </div>
+
+                </div>
+
+                <!-- Wizard Navigation Footer -->
+                <div class="p-4 border-t border-gray-100 flex items-center justify-between bg-white sticky bottom-0">
+                    <button id="btn-wizard-prev" onclick="prevStep()" class="bg-gray-100 text-gray-600 px-4 py-2.5 rounded-xl text-xs font-bold opacity-50 cursor-not-allowed" disabled>
+                        مرحله قبل
+                    </button>
+                    <button id="btn-wizard-next" onclick="nextStep()" class="bg-agri-600 hover:bg-agri-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md transition">
+                        گام بعدی <i class="fas fa-arrow-left mr-1"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- MODAL: REPORT VIEWER (نمایش نمونه گزارش و آزمایش) -->
+        <!-- ======================================================== -->
+        <div id="modal-report" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+            <div class="bg-white w-full max-w-[400px] rounded-3xl max-h-[85vh] overflow-y-auto p-5 space-y-4 shadow-2xl">
+                
+                <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <div>
+                        <h3 class="font-bold text-gray-800 text-sm">کارنامه آنالیز آب چاه (کد #۳۹۰۱)</h3>
+                        <p class="text-xs text-gray-400">تاریخ: ۱۴۰۲/۱۱/۲۰ - آزمایشگاه سبز آزمون</p>
+                    </div>
+                    <button onclick="closeReportModal()" class="w-7 h-7 bg-gray-100 text-gray-600 rounded-full text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Visual Gauge Cards -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-xs text-gray-700">وضعیت شاخص‌های کلیدی:</h4>
+
+                    <!-- Metric 1 -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-gray-800">میزان شوری آب (EC)</span>
+                            <p class="text-[11px] text-gray-500">1.2 dS/m (مطلوب)</p>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-lg font-bold">عالی 🟢</span>
+                    </div>
+
+                    <!-- Metric 2 -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-gray-800">اسیدیته آب (pH)</span>
+                            <p class="text-[11px] text-gray-500">7.4 (خنثی)</p>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-lg font-bold">ایده‌آل 🟢</span>
+                    </div>
+
+                    <!-- Metric 3 -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-gray-800">میزان کلر و سدیم</span>
+                            <p class="text-[11px] text-gray-500">نسبتاً بالا (نیازمند اصلاح)</p>
+                        </div>
+                        <span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-lg font-bold">احتیاط 🟡</span>
+                    </div>
+                </div>
+
+                <!-- Recommendation Box -->
+                <div class="bg-agri-50 border border-agri-200 p-3.5 rounded-2xl space-y-1.5">
+                    <h4 class="font-bold text-agri-800 text-xs flex items-center">
+                        <i class="fas fa-leaf ml-1"></i> توصیه کودی و مدیریتی کارشناس:
+                    </h4>
+                    <p class="text-xs text-agri-900 leading-relaxed">
+                        آب آبیاری شما کیفیت بالایی دارد. برای جلوگیری از تجمع کلر در ریشه مرکبات، پیشنهاد می‌شود در هر دوره آبیاری، از کودهای گوگردی سولفات کلسیم استفاده نمایید.
+                    </p>
+                </div>
+
+                <button onclick="alert('فایل کامل PDF گزارش با تمام پارامترها ذخیره شد.');" class="w-full bg-agri-600 text-white text-xs py-3 rounded-xl font-bold flex items-center justify-center space-x-1 space-x-reverse">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>دانلود گزارش کامل نسخه کارشناسی (PDF)</span>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- MODAL: NOTIFICATIONS -->
+        <!-- ======================================================== -->
+        <div id="modal-notif" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-[360px] rounded-3xl p-4 space-y-3 shadow-2xl">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                    <h3 class="font-bold text-gray-800 text-sm">اعلا‌م‌ها و اطلاعیه‌ها</h3>
+                    <button onclick="closeNotificationModal()" class="w-7 h-7 bg-gray-100 text-gray-600 rounded-full text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div class="p-3 bg-agri-50 rounded-xl text-agri-800 border border-agri-100">
+                        🌱 <strong>زمان طلایی کوددهی مرکبات:</strong> با توجه به آنالیز خاک منطقه‌ای دزفول، بهترین زمان شروع توصیه کود سرک فرا رسیده است.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Tab Navigation
+        function switchTab(tabId) {
+            // Hide all tabs
+            ['home', 'orders', 'guide', 'support'].forEach(tab => {
+                document.getElementById('tab-' + tab).classList.add('hidden');
+                const navBtn = document.getElementById('nav-' + tab);
+                if (navBtn) {
+                    navBtn.classList.remove('text-agri-600');
+                    navBtn.classList.add('text-gray-400');
+                }
+            });
+
+            // Show selected tab
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeNavBtn = document.getElementById('nav-' + tabId);
+            if (activeNavBtn) {
+                activeNavBtn.classList.remove('text-gray-400');
+                activeNavBtn.classList.add('text-agri-600');
+            }
+
+            // Scroll container to top
+            document.getElementById('main-container').scrollTop = 0;
+        }
+
+        // Subtabs inside Orders
+        function toggleSubTab(type) {
+            const btnActive = document.getElementById('btn-subtab-active');
+            const btnHistory = document.getElementById('btn-subtab-history');
+            const contentActive = document.getElementById('subtab-active-content');
+            const contentHistory = document.getElementById('subtab-history-content');
+
+            if (type === 'active') {
+                btnActive.className = "flex-1 py-2 rounded-lg bg-white shadow-sm text-agri-700 font-bold";
+                btnHistory.className = "flex-1 py-2 rounded-lg text-gray-600 font-normal";
+                contentActive.classList.remove('hidden');
+                contentHistory.classList.add('hidden');
+            } else {
+                btnHistory.className = "flex-1 py-2 rounded-lg bg-white shadow-sm text-agri-700 font-bold";
+                btnActive.className = "flex-1 py-2 rounded-lg text-gray-600 font-normal";
+                contentHistory.classList.remove('hidden');
+                contentActive.classList.add('hidden');
+            }
+        }
+
+        // Wizard State Variables
+        let currentStep = 1;
+        let selectedService = 'آزمایش کامل خاک';
+        let selectedCropName = 'مرکبات';
+        let selectedSamplingMethod = 'اعزام کارشناس به مزرعه';
+
+        function openWizard() {
+            currentStep = 1;
+            updateWizardView();
+            document.getElementById('modal-wizard').classList.remove('hidden');
+        }
+
+        function openWizardWithService(serviceType) {
+            openWizard();
+            // Pre-select service step
+            if(serviceType === 'soil') selectedService = 'آزمایش کامل خاک';
+            if(serviceType === 'water') selectedService = 'آزمایش آب آبیاری';
+            if(serviceType === 'leaf') selectedService = 'آنالیز بافت برگ';
+            if(serviceType === 'pest') selectedService = 'آفت‌شناسی و گیاه‌پزشکی';
+        }
+
+        function closeWizard() {
+            document.getElementById('modal-wizard').classList.add('hidden');
+        }
+
+        function updateWizardView() {
+            // Hide all steps
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('step-' + i).classList.add('hidden');
+            }
+            // Show current step
+            document.getElementById('step-' + currentStep).classList.remove('hidden');
+
+            // Update Progress bar & Title
+            const progressBar = document.getElementById('progress-bar');
+            const stepTitle = document.getElementById('wizard-step-title');
+            const prevBtn = document.getElementById('btn-wizard-prev');
+            const nextBtn = document.getElementById('btn-wizard-next');
+
+            progressBar.style.width = (currentStep * 25) + '%';
+
+            if (currentStep === 1) {
+                stepTitle.innerText = "مرحله ۱ از ۴: انتخاب نوع آزمایش";
+                prevBtn.disabled = true;
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                nextBtn.innerHTML = 'گام بعدی <i class="fas fa-arrow-left mr-1"></i>';
+            } else if (currentStep === 2) {
+                stepTitle.innerText = "مرحله ۲ از ۴: مشخصات زمین و محصول";
+                prevBtn.disabled = false;
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                nextBtn.innerHTML = 'گام بعدی <i class="fas fa-arrow-left mr-1"></i>';
+            } else if (currentStep === 3) {
+                stepTitle.innerText = "مرحله ۳ از ۴: روش نمونه‌برداری";
+                nextBtn.innerHTML = 'تایید و خلاصه سفارش <i class="fas fa-arrow-left mr-1"></i>';
+            } else if (currentStep === 4) {
+                stepTitle.innerText = "مرحله ۴ از ۴: بررسی نهایی و ثبت";
+                nextBtn.innerHTML = 'ثبت و ارسال سفارش <i class="fas fa-check-circle mr-1"></i>';
+                
+                // Update summary values
+                document.getElementById('summary-service').innerText = selectedService;
+                document.getElementById('summary-crop').innerText = selectedCropName;
+                document.getElementById('summary-method').innerText = selectedSamplingMethod;
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < 4) {
+                currentStep++;
+                updateWizardView();
+            } else {
+                // Final Submission logic
+                closeWizard();
+                alert('ثبت سفارش شما با موفقیت انجام شد! کارشناسان آزمایشگاه سبز آزمون رزمندگان به زودی با شما تماس می‌گیرند.');
+                switchTab('orders');
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateWizardView();
+            }
+        }
+
+        // Selection Handlers
+        function selectServiceOption(type, element) {
+            document.querySelectorAll('.service-opt').forEach(opt => {
+                opt.classList.remove('border-2', 'border-agri-500', 'bg-agri-50');
+                opt.classList.add('border-gray-200');
+                opt.querySelector('.check-icon').className = "fas fa-check-circle text-gray-300 text-lg check-icon";
+            });
+            element.classList.add('border-2', 'border-agri-500', 'bg-agri-50');
+            element.querySelector('.check-icon').className = "fas fa-check-circle text-agri-600 text-lg check-icon";
+
+            if (type === 'soil') selectedService = 'آزمایش کامل خاک';
+            if (type === 'water') selectedService = 'آزمایش آب آبیاری';
+            if (type === 'leaf') selectedService = 'آنالیز بافت برگ';
+            if (type === 'pest') selectedService = 'آفت‌شناسی و گیاه‌پزشکی';
+        }
+
+        function selectCrop(cropName) {
+            selectedCropName = cropName;
+            document.querySelectorAll('.crop-btn').forEach(btn => {
+                btn.classList.remove('border-agri-500', 'bg-agri-50');
+                btn.querySelector('i').classList.add('hidden');
+            });
+            event.currentTarget.classList.add('border-agri-500', 'bg-agri-50');
+            event.currentTarget.querySelector('i').classList.remove('hidden');
+        }
+
+        function selectSamplingMethod(method, element) {
+            document.querySelectorAll('.sample-opt').forEach(opt => {
+                opt.classList.remove('border-2', 'border-agri-500', 'bg-agri-50');
+                opt.classList.add('border-gray-200');
+            });
+            element.classList.add('border-2', 'border-agri-500', 'bg-agri-50');
+
+            if (method === 'expert') selectedSamplingMethod = 'اعزام کارشناس به مزرعه';
+            if (method === 'self') selectedSamplingMethod = 'ارسال نمونه توسط خودم';
+        }
+
+        // Modals Toggle
+        function openReportModal() {
+            document.getElementById('modal-report').classList.remove('hidden');
+        }
+        function closeReportModal() {
+            document.getElementById('modal-report').classList.add('hidden');
+        }
+
+        function openNotificationModal() {
+            document.getElementById('modal-notif').classList.remove('hidden');
+        }
+        function closeNotificationModal() {
+            document.getElementById('modal-notif').classList.add('hidden');
+        }
+
+        // Clock display logic
+        setInterval(() => {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('current-time').innerText = `${hours}:${minutes}`;
+        }, 1000);
+    </script>
+</body>
+</html>
